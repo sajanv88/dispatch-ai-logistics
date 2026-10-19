@@ -24,18 +24,18 @@ function parseUrl(value: string): URL | undefined {
 }
 
 /**
- * A MapLibre style from `MAP_TILE_URL`. An XYZ template, such as
- * OpenStreetMap's, is drawn as raster tiles. An address whose path ends in
- * .json is a full MapLibre style from a vector provider, and used as it is.
- * Anything else falls back to OpenStreetMap.
+ * A MapLibre style from `MAP_TILE_URL`. An XYZ template with {z}, {x} and
+ * {y}, such as OpenStreetMap's, is drawn as raster tiles. Any other address
+ * is a full MapLibre style from a vector provider, such as OpenFreeMap's or
+ * MapTiler's, and used as it is: the style carries its own attribution.
+ * Nothing set, or an address that isn't http(s), falls back to OpenStreetMap.
  */
 export function mapStyleFor(tileUrl: string | undefined, attribution?: string): MapStyle {
   const value = tileUrl?.trim() ?? "";
   const url = value ? parseUrl(value) : undefined;
-  if (url?.pathname.endsWith(".json")) return value;
-  const isTemplate =
-    url !== undefined && ["{z}", "{x}", "{y}"].every((part) => value.includes(part));
-  const tiles = isTemplate ? value : defaultTileUrl;
+  const isTemplate = ["{z}", "{x}", "{y}"].every((part) => value.includes(part));
+  if (url && !isTemplate) return value;
+  const tiles = url && isTemplate ? value : defaultTileUrl;
   return {
     version: 8,
     sources: {

@@ -31,12 +31,20 @@ All of them are optional. Set them in `.env.local`, or in the Vercel project's s
 | --- | --- | --- |
 | `ANTHROPIC_API_KEY` | unset: demo mode | Connects the chat to Claude. |
 | `ANTHROPIC_MODEL` | `claude-haiku-5-5` | The model the agent runs on. |
-| `MAP_TILE_URL` | OpenStreetMap's tiles | An XYZ tile template, or the address of a MapLibre style ending in `.json`. |
-| `MAP_ATTRIBUTION` | © OpenStreetMap contributors | The credit in the map's corner. Text and `https` links only. |
+| `MAP_TILE_URL` | OpenStreetMap's tiles | The address of a MapLibre style, or an XYZ tile template with `{z}/{x}/{y}`. |
+| `MAP_ATTRIBUTION` | © OpenStreetMap contributors | The credit in the map's corner, for an XYZ template. A style brings its own. Text and `https` links only. |
 | `ROUTING_URL` | unset: straight lines | An [OSRM](https://project-osrm.org) server, to draw the route along the roads. |
 | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | unset: in-memory limits | [Upstash Redis](https://upstash.com), for rate limits shared by every instance. |
 
-**Map tiles.** OpenStreetMap's tile servers are run by volunteers, and [their usage policy](https://operations.osmfoundation.org/policies/tiles/) doesn't allow heavy traffic. They're fine for trying the template; for anything public, set `MAP_TILE_URL` to a provider of your own.
+**Map tiles.** OpenStreetMap's tile servers are run by volunteers, and [their usage policy](https://operations.osmfoundation.org/policies/tiles/) doesn't allow heavy traffic. They're fine for trying the template; for anything public, set `MAP_TILE_URL` to a provider of your own:
+
+| Provider | `MAP_TILE_URL` | Account |
+| --- | --- | --- |
+| [OpenFreeMap](https://openfreemap.org) | `https://tiles.openfreemap.org/styles/liberty` (or `bright`, `positron`) | None, free |
+| [MapTiler](https://www.maptiler.com) | `https://api.maptiler.com/maps/streets-v2/style.json?key=YOUR_KEY` | Free tier, with a key |
+| [Stadia Maps](https://stadiamaps.com) | `https://tiles.stadiamaps.com/styles/alidade_smooth.json` | Free tier, with your domain registered |
+
+A map key is sent to the browser, as every web map's is: limit it to your domain in the provider's dashboard.
 
 ## How it works
 
