@@ -1,0 +1,138 @@
+@use "@nuvui/react/scss/mixins" as nuv;
+
+// The shipping-label block, sized for the drawer rather than a whole page.
+.shipping-label {
+  display: grid;
+  gap: calc(var(--spacing) * 3);
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+
+  &__head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--spacing) * 3);
+    align-items: end;
+    justify-content: space-between;
+  }
+
+  &__about {
+    display: grid;
+    gap: calc(var(--spacing) * 1);
+  }
+
+  &__title {
+    margin: 0;
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--text-lg--line-height);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  &__text {
+    margin: 0;
+    color: var(--color-muted-foreground);
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--spacing) * 2);
+  }
+
+  // Kept its height when it's empty, so the label doesn't jump when it
+  // first says something.
+  &__said {
+    min-block-size: calc(var(--text-sm) * var(--text-sm--line-height));
+    margin: 0;
+    color: var(--color-muted-foreground);
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+  }
+
+  // The label itself, as it would be on the parcel.
+  &__label {
+    display: grid;
+    gap: calc(var(--spacing) * 4);
+    padding: calc(var(--spacing) * 4);
+    border: 2px solid var(--color-border-strong);
+    border-radius: var(--radius-lg);
+    background-color: var(--color-surface);
+    color: var(--color-surface-foreground);
+  }
+
+  &__row {
+    display: grid;
+    gap: calc(var(--spacing) * 4);
+
+    @include nuv.breakpoint("sm") {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+  }
+
+  &__party {
+    display: grid;
+    gap: calc(var(--spacing) * 1);
+    align-content: start;
+  }
+
+  &__party--to {
+    padding-block: calc(var(--spacing) * 3);
+    border-block: var(--nuv-border-width) solid var(--color-border-strong);
+  }
+
+  &__heading {
+    margin: 0;
+    color: var(--color-muted-foreground);
+    font-size: var(--text-xs);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--text-xs--line-height);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  &__address {
+    display: grid;
+    font-size: var(--text-sm);
+    font-style: normal;
+    line-height: var(--text-sm--line-height);
+  }
+
+  // Who it's for is what a courier reads first.
+  &__address--to {
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--text-lg--line-height);
+  }
+
+  &__line {
+    display: block;
+  }
+
+  &__facts {
+    display: grid;
+    gap: calc(var(--spacing) * 2);
+    align-content: start;
+    margin: 0;
+  }
+
+  &__fact {
+    display: grid;
+    gap: calc(var(--spacing) * 0.5);
+  }
+
+  &__value {
+    margin: 0;
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+  }
+
+  &__codes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--spacing) * 4);
+    align-items: center;
+    justify-content: space-between;
+  }
+}

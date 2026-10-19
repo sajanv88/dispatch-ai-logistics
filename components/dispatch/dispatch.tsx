@@ -4,6 +4,7 @@ import type { MapStyle } from "@nuvui/map";
 import { AssistantPanel } from "@/components/assistant-panel/assistant-panel";
 import { DeliveryRoute } from "@/components/delivery-route/delivery-route";
 import { DispatchShell } from "@/components/dispatch-shell/dispatch-shell";
+import { StopDrawer } from "@/components/stop-drawer/stop-drawer";
 import { AgentProvider, useAgent } from "@/lib/agent/agent-provider";
 import { DispatchProvider, useDispatchStore } from "@/lib/store";
 
@@ -42,6 +43,7 @@ function Console({ mapStyle, demo }: DispatchProps) {
       assistant={<AssistantPanel starters={starters} />}
     >
       <DeliveryRoute mapStyle={mapStyle} />
+      <StopDrawer mapStyle={mapStyle} />
     </DispatchShell>
   );
 }

@@ -147,6 +147,11 @@
     line-height: var(--text-sm--line-height);
   }
 
+  &__popup-action {
+    display: flex;
+    margin-block-start: calc(var(--spacing) * 2);
+  }
+
   &__badges {
     display: grid;
     gap: calc(var(--spacing) * 1);

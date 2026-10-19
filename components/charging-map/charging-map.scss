@@ -1,0 +1,103 @@
+@use "@nuvui/react/scss/mixins" as nuv;
+
+// The charging-map block, in the drawer: the list over the map.
+.charging-map {
+  display: grid;
+  gap: calc(var(--spacing) * 3);
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+
+  &__side {
+    display: grid;
+    gap: calc(var(--spacing) * 3);
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+  }
+
+  &__filter {
+    display: flex;
+    gap: calc(var(--spacing) * 3);
+    align-items: center;
+    justify-content: space-between;
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+  }
+
+  &__count {
+    margin: 0;
+    color: var(--color-muted-foreground);
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+  }
+
+  // A few rows tall, and scrolls, so the map under it is never far down.
+  &__list {
+    display: grid;
+    gap: calc(var(--spacing) * 2);
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    max-block-size: 14rem;
+
+    // Room for the focus ring, which the scrolling would cut off.
+    margin: calc(var(--spacing) * -1);
+    padding: calc(var(--spacing) * 1);
+    overflow-y: auto;
+    list-style: none;
+  }
+
+  // A charging point, as a button that goes to it on the map.
+  &__point {
+    display: grid;
+    gap: calc(var(--spacing) * 0.5);
+    inline-size: 100%;
+    padding: calc(var(--spacing) * 3);
+    border: var(--nuv-border-width, 1px) solid var(--color-border-strong);
+    border-radius: var(--radius-lg);
+    background-color: var(--color-surface);
+    color: var(--color-surface-foreground);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+
+    @include nuv.focus-ring;
+
+    @include nuv.hover {
+      background-color: var(--color-muted);
+    }
+  }
+
+  &__name {
+    font-weight: var(--font-weight-semibold);
+  }
+
+  &__line {
+    color: var(--color-muted-foreground);
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+  }
+
+  &__van {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2rem;
+    block-size: 2rem;
+    border: 2px solid var(--color-primary-foreground);
+    border-radius: var(--radius-md);
+    background-color: var(--color-foreground);
+    color: var(--color-background);
+    box-shadow: var(--shadow-md);
+  }
+
+  &__map {
+    --nuv-map-height: 18rem;
+  }
+}
+
+// The one that's open has the primary color's edge, twice as thick. Written
+// out in full: stylelint can't read a compound selector nested as
+// &__element[attribute].
+.charging-map__point[aria-pressed="true"] {
+  border-color: var(--color-primary);
+  box-shadow: inset 0 0 0 var(--nuv-border-width, 1px) var(--color-primary);
+}

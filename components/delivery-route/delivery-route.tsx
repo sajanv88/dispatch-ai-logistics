@@ -10,7 +10,7 @@ import {
   MapView,
   mapBoundsOf,
 } from "@nuvui/map";
-import { Badge } from "@nuvui/react";
+import { Badge, Button } from "@nuvui/react";
 import { useId, useMemo } from "react";
 import "@/components/map-worker";
 import { etas, nextStop, routeLines, vanPosition } from "@/lib/geo";
@@ -146,6 +146,14 @@ export function DeliveryRoute({ mapStyle }: { mapStyle: MapStyle }) {
                 {stop.address}, {stop.city}
                 <br />
                 {timeLine(stop)}
+                <Button
+                  intent="secondary"
+                  size="sm"
+                  className="delivery-route__popup-action"
+                  onClick={() => store.openDrawer("label", stop.id)}
+                >
+                  Shipping label
+                </Button>
               </>
             }
           >

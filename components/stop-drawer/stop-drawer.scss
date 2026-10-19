@@ -1,0 +1,16 @@
+// The drawer's tabs and what's under each.
+.stop-drawer {
+  display: grid;
+  gap: calc(var(--spacing) * 4);
+
+  &__panel {
+    display: grid;
+    gap: calc(var(--spacing) * 4);
+    align-content: start;
+  }
+
+  &__picker {
+    display: grid;
+    gap: calc(var(--spacing) * 1.5);
+  }
+}
