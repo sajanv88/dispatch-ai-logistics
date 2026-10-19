@@ -1,7 +1,7 @@
 import { etas, haversineKm, toMinutes, vanPosition } from "@/lib/geo";
 import { knownAddresses } from "@/lib/seed/addresses";
 import { chargers } from "@/lib/seed/chargers";
-import type { KnownAddress, Parcel, RouteState, Stop, StopKind, TimeWindow } from "@/lib/types";
+import type { KnownAddress, RouteState, Stop, StopKind, TimeWindow } from "@/lib/types";
 
 // Every change the agent can make to the round, as a pure function of the
 // state. The store, the client-side tools and demo mode all call these, so
@@ -144,7 +144,7 @@ export interface NewStop {
   address: string;
   kind: StopKind;
   window?: TimeWindow | undefined;
-  parcel?: Partial<Pick<Parcel, "weightKg" | "service">> | undefined;
+  parcel?: { weightKg?: number | undefined; service?: string | undefined } | undefined;
 }
 
 export function addStop(

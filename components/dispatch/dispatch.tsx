@@ -1,8 +1,10 @@
 "use client";
 
 import type { MapStyle } from "@nuvui/map";
+import { AssistantPanel } from "@/components/assistant-panel/assistant-panel";
 import { DeliveryRoute } from "@/components/delivery-route/delivery-route";
 import { DispatchShell } from "@/components/dispatch-shell/dispatch-shell";
+import { AgentProvider, useAgent } from "@/lib/agent/agent-provider";
 import { DispatchProvider, useDispatchStore } from "@/lib/store";
 
 interface DispatchProps {
@@ -10,19 +12,35 @@ interface DispatchProps {
   demo: boolean;
 }
 
-/** The console: everything under it shares one store. */
+const starters = [
+  "Where is the van and what's next?",
+  "Add a pickup at Oudegracht 158, Utrecht, right after the next stop",
+  "Find a free charger near the next stop",
+] as const;
+
+/** The console: everything under it shares one store and one conversation. */
 export function Dispatch(props: DispatchProps) {
   return (
     <DispatchProvider>
-      <Console {...props} />
+      <AgentProvider>
+        <Console {...props} />
+      </AgentProvider>
     </DispatchProvider>
   );
 }
 
 function Console({ mapStyle, demo }: DispatchProps) {
   const store = useDispatchStore();
+  const agent = useAgent();
   return (
-    <DispatchShell demo={demo} onReset={() => store.reset()} assistant={<p>Assistant</p>}>
+    <DispatchShell
+      demo={demo}
+      onReset={() => {
+        agent.clear();
+        store.reset();
+      }}
+      assistant={<AssistantPanel starters={starters} />}
+    >
       <DeliveryRoute mapStyle={mapStyle} />
     </DispatchShell>
   );

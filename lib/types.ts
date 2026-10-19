@@ -29,7 +29,7 @@ export interface Stop {
   parcel: Parcel;
   status: StopStatus;
   /** When a done stop was completed, "HH:MM". */
-  doneAt?: string;
+  doneAt?: string | undefined;
 }
 
 export interface Depot {
