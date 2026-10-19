@@ -1,4 +1,4 @@
-import { etas, haversineKm, vanPosition } from "@/lib/geo";
+import { etas, haversineKm, toMinutes, vanPosition } from "@/lib/geo";
 import { knownAddresses } from "@/lib/seed/addresses";
 import { chargers } from "@/lib/seed/chargers";
 import type { KnownAddress, Parcel, RouteState, Stop, StopKind, TimeWindow } from "@/lib/types";
@@ -22,6 +22,9 @@ function normalize(stops: Stop[]): Stop[] {
 }
 
 const describe = (stop: Stop) => `${stop.name}, ${stop.address}, ${stop.city}`;
+
+export const maxWeightKg = 1000;
+export const isTime = (value: string) => /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
 
 export function newTrackingNumber(): string {
   const digits = crypto.getRandomValues(new Uint32Array(2));
@@ -147,7 +150,24 @@ export interface NewStop {
 export function addStop(
   state: RouteState,
   input: NewStop,
-): OpResult<{ id: string; name: string; address: string }> | AddressLookup {
+):
+  | OpResult<{ id: string; name: string; address: string }>
+  | { ok: false; error: string; suggestions: string[] } {
+  // The tools' schemas check this too. These functions are also called by
+  // demo mode and anything else, so they don't trust their input either.
+  const { window, parcel } = input;
+  if (window) {
+    if (!isTime(window.from) || !isTime(window.to)) {
+      return fail(`A window is two times as HH:MM, such as 13:00 and 15:30.`);
+    }
+    if (toMinutes(window.from) >= toMinutes(window.to)) {
+      return fail(`The window has to end after it starts.`);
+    }
+  }
+  const weightKg = parcel?.weightKg ?? 2;
+  if (!Number.isFinite(weightKg) || weightKg <= 0 || weightKg > maxWeightKg) {
+    return fail(`A parcel weighs between 0 and ${maxWeightKg} kg.`);
+  }
   const found = resolveAddress(input.address);
   if (!found.ok) return found;
   const { address } = found;
@@ -160,10 +180,10 @@ export function addStop(
     city: address.city,
     at: address.at,
     kind: input.kind,
-    window: input.window ?? { from: state.clock, to: "17:00" },
+    window: window ?? { from: state.clock, to: "17:00" },
     parcel: {
-      weightKg: input.parcel?.weightKg ?? 2,
-      service: input.parcel?.service ?? (input.kind === "pickup" ? "Return" : "Standard"),
+      weightKg,
+      service: parcel?.service?.slice(0, 40) ?? (input.kind === "pickup" ? "Return" : "Standard"),
       tracking: newTrackingNumber(),
     },
     status: "planned",
@@ -209,6 +229,9 @@ export function regenerateLabel(
 ): OpResult<{ stop: string; oldTracking: string; tracking: string }> {
   const stop = state.stops.find((other) => other.id === id);
   if (!stop) return fail(`There's no stop with id ${id}.`);
+  if (stop.status === "done") {
+    return fail(`${stop.name} is already done, so its label can't be reissued.`);
+  }
   const tracking = newTrackingNumber();
   const stops = state.stops.map((other) =>
     other.id === id ? { ...other, parcel: { ...other.parcel, tracking } } : other,

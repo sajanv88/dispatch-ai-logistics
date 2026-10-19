@@ -1,0 +1,113 @@
+@use "@nuvui/react/scss/mixins" as nuv;
+
+.dispatch-shell {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+
+  &__brand {
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  // As tall as the screen: the page and the assistant scroll on their own.
+  &__main {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    min-inline-size: 0;
+    block-size: 100dvh;
+  }
+
+  &__bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--spacing) * 3);
+    align-items: center;
+    padding: calc(var(--spacing) * 2) calc(var(--spacing) * 4);
+    border-block-end: var(--nuv-border-width) solid var(--color-border);
+  }
+
+  &__title {
+    margin: 0;
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--leading-snug);
+  }
+
+  &__tools {
+    display: flex;
+    gap: calc(var(--spacing) * 1);
+    align-items: center;
+    margin-inline-start: auto;
+  }
+
+  &__body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    min-block-size: 0;
+  }
+
+  // The container the page's own layout asks about, as "page".
+  &__page {
+    container: page / inline-size;
+    min-block-size: 0;
+    overflow-y: auto;
+  }
+
+  // Beside the page on a wide screen. On a narrow one the assistant is in a
+  // sheet, and this stays hidden, even before the script has run.
+  &__panel {
+    display: none;
+
+    @include nuv.breakpoint("lg") {
+      display: flex;
+      flex-direction: column;
+      min-block-size: 0;
+      border-inline-start: var(--nuv-border-width) solid var(--color-border);
+    }
+  }
+
+  &__panel-head {
+    display: flex;
+    flex: none;
+    gap: calc(var(--spacing) * 2);
+    align-items: center;
+    justify-content: space-between;
+    padding: calc(var(--spacing) * 2) calc(var(--spacing) * 4);
+    border-block-end: var(--nuv-border-width) solid var(--color-border);
+  }
+
+  &__panel-title {
+    margin: 0;
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--text-sm--line-height);
+  }
+
+  &__panel-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-block-size: 0;
+  }
+
+  &__sheet {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+  }
+
+  // Square, with the library's touch size, as the button holds only an icon.
+  &__icon {
+    flex: none;
+    aspect-ratio: 1;
+    padding: 0;
+  }
+}
+
+// The width is the one in dispatch-shell.tsx. Written out in full: stylelint
+// can't read a compound selector nested as &__element[attribute].
+.dispatch-shell__body[data-panel="open"] {
+  @include nuv.breakpoint("lg") {
+    grid-template-columns: minmax(0, 1fr) 26rem;
+  }
+}

@@ -18,7 +18,8 @@ export function toMinutes(time: string): number {
 }
 
 export function fromMinutes(total: number): string {
-  const minutes = Math.round(total) % (24 * 60);
+  const day = 24 * 60;
+  const minutes = ((Math.round(total) % day) + day) % day;
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;

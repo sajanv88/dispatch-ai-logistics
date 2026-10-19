@@ -1,25 +1,13 @@
-import { etas } from "@/lib/geo";
-import { knownAddresses } from "@/lib/seed/addresses";
-import { chargers } from "@/lib/seed/chargers";
-import { seedRoute } from "@/lib/seed/route";
+import { Dispatch } from "@/components/dispatch/dispatch";
+import { mapStyleFor } from "@/lib/map-style";
 
-// Stage 1 only: shows the seed data, with ETAs, until the blocks replace it.
+// Configuration is read here, on the server, and handed to the console as
+// plain props, so none of it needs a NEXT_PUBLIC_ variable.
 export default function Page() {
-  const times = etas(seedRoute);
   return (
-    <main>
-      <h1>
-        {seedRoute.van.name}: {seedRoute.stops.length} stops, {chargers.length} chargers,{" "}
-        {knownAddresses.length} known addresses
-      </h1>
-      <ol>
-        {seedRoute.stops.map((stop) => (
-          <li key={stop.id}>
-            {stop.name}, {stop.city}: {stop.status} {stop.doneAt ?? times.get(stop.id)?.eta}
-            {times.get(stop.id)?.late ? " (late)" : ""}
-          </li>
-        ))}
-      </ol>
-    </main>
+    <Dispatch
+      mapStyle={mapStyleFor(process.env.MAP_TILE_URL, process.env.MAP_ATTRIBUTION)}
+      demo={!process.env.ANTHROPIC_API_KEY}
+    />
   );
 }

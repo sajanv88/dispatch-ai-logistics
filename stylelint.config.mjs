@@ -30,6 +30,11 @@ export default {
         ignoreAtRules: ["include", "media", "supports", "container"],
       },
     ],
+    // nuvui's tokens put a double dash before a variant: --text-sm--line-height.
+    "custom-property-pattern": [
+      `^${kebab}(?:--${kebab})?$`,
+      { message: (name) => `Expected "${name}" to be kebab-case, as nuvui's tokens are` },
+    ],
     "selector-max-id": 0,
     "selector-no-qualifying-type": true,
     "declaration-no-important": true,

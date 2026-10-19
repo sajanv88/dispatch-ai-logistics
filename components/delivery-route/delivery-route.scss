@@ -1,0 +1,178 @@
+@use "@nuvui/react/scss/mixins" as nuv;
+
+// The stops over the map where the page is narrow, and beside it where the
+// page is wide. "Wide" is the page's own width, not the screen's, since the
+// assistant's panel takes some of the screen. The page is the "page"
+// container, set by the shell.
+.delivery-route {
+  display: grid;
+  gap: calc(var(--spacing) * 4);
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  inline-size: 100%;
+  min-block-size: 0;
+  padding: calc(var(--spacing) * 4);
+  box-sizing: border-box;
+
+  @container page (inline-size >= 44rem) {
+    grid-template-columns: minmax(0, 20rem) minmax(0, 1fr);
+
+    // One row as tall as the page, whatever is in the list.
+    grid-template-rows: minmax(0, 1fr);
+    align-content: stretch;
+    block-size: 100%;
+  }
+
+  &__side {
+    display: grid;
+    gap: calc(var(--spacing) * 4);
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    align-content: start;
+    min-block-size: 0;
+  }
+
+  &__head {
+    display: grid;
+    gap: calc(var(--spacing) * 1);
+  }
+
+  &__title {
+    margin: 0;
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--text-xl--line-height);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  &__summary {
+    margin: 0;
+    color: var(--color-muted-foreground);
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+  }
+
+  &__stops {
+    display: grid;
+    gap: calc(var(--spacing) * 2);
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    @container page (inline-size >= 44rem) {
+      // Room for the focus ring, which the scrolling would cut off.
+      margin: calc(var(--spacing) * -1);
+      padding: calc(var(--spacing) * 1);
+      overflow-y: auto;
+    }
+  }
+
+  // A stop, as a button that opens it on the map. The one that's open has
+  // the primary color's edge, twice as thick, and says it's pressed.
+  &__stop {
+    display: grid;
+    gap: calc(var(--spacing) * 3);
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: start;
+    inline-size: 100%;
+    padding: calc(var(--spacing) * 3);
+    border: var(--nuv-border-width, 1px) solid var(--color-border-strong);
+    border-radius: var(--radius-lg);
+    background-color: var(--color-surface);
+    color: var(--color-surface-foreground);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+
+    @include nuv.focus-ring;
+
+    @include nuv.hover {
+      background-color: var(--color-muted);
+    }
+  }
+
+  // The stop's number, in the list and on the map. Filled for a stop that's
+  // done or next, and an outline for one still to come, so the three aren't
+  // told apart by color alone: the list says which in words.
+  &__number,
+  &__pin {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 1.75rem;
+    block-size: 1.75rem;
+    border: 2px solid var(--color-primary);
+    border-radius: var(--radius-full);
+    background-color: var(--color-primary);
+    color: var(--color-primary-foreground);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-semibold);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+
+  &__pin {
+    box-shadow: var(--shadow-sm);
+  }
+
+  // The van: a square, so it isn't taken for a stop.
+  &__van {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2rem;
+    block-size: 2rem;
+    border: 2px solid var(--color-primary-foreground);
+    border-radius: var(--radius-md);
+    background-color: var(--color-foreground);
+    color: var(--color-background);
+    box-shadow: var(--shadow-md);
+  }
+
+  &__text {
+    display: grid;
+    gap: calc(var(--spacing) * 0.5);
+    min-inline-size: 0;
+  }
+
+  &__name {
+    font-weight: var(--font-weight-semibold);
+  }
+
+  &__line {
+    color: var(--color-muted-foreground);
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+  }
+
+  &__badges {
+    display: grid;
+    gap: calc(var(--spacing) * 1);
+    justify-items: end;
+  }
+
+  &__map {
+    --nuv-map-height: 22rem;
+
+    @container page (inline-size >= 44rem) {
+      --nuv-map-height: 100%;
+    }
+  }
+}
+
+// States, from the attribute that says them. Written out in full: stylelint
+// can't read a compound selector nested as &__element[attribute].
+
+// The stop that's open has the primary color's edge, twice as thick.
+.delivery-route__stop[aria-pressed="true"] {
+  border-color: var(--color-primary);
+  box-shadow: inset 0 0 0 var(--nuv-border-width, 1px) var(--color-primary);
+}
+
+.delivery-route__number[data-state="planned"],
+.delivery-route__pin[data-state="planned"] {
+  background-color: var(--color-surface);
+  color: var(--color-surface-foreground);
+}
