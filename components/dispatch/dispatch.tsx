@@ -6,18 +6,13 @@ import { DeliveryRoute } from "@/components/delivery-route/delivery-route";
 import { DispatchShell } from "@/components/dispatch-shell/dispatch-shell";
 import { StopDrawer } from "@/components/stop-drawer/stop-drawer";
 import { AgentProvider, useAgent } from "@/lib/agent/agent-provider";
+import { demoScript, liveStarters } from "@/lib/agent/demo-script";
 import { DispatchProvider, useDispatchStore } from "@/lib/store";
 
 interface DispatchProps {
   mapStyle: MapStyle;
   demo: boolean;
 }
-
-const starters = [
-  "Where is the van and what's next?",
-  "Add a pickup at Oudegracht 158, Utrecht, right after the next stop",
-  "Find a free charger near the next stop",
-] as const;
 
 /** The console: everything under it shares one store and one conversation. */
 export function Dispatch(props: DispatchProps) {
@@ -40,7 +35,7 @@ function Console({ mapStyle, demo }: DispatchProps) {
         agent.clear();
         store.reset();
       }}
-      assistant={<AssistantPanel starters={starters} />}
+      assistant={<AssistantPanel demo={demo} starters={demo ? demoScript : liveStarters} />}
     >
       <DeliveryRoute mapStyle={mapStyle} />
       <StopDrawer mapStyle={mapStyle} />

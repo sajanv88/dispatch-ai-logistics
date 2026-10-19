@@ -2,13 +2,12 @@ import { anthropic } from "@ai-sdk/anthropic";
 import {
   APICallError,
   convertToModelMessages,
-  createUIMessageStream,
-  createUIMessageStreamResponse,
   safeValidateUIMessages,
   stepCountIs,
   streamText,
   tool,
 } from "ai";
+import { demoResponse } from "@/lib/agent/demo";
 import { systemPrompt } from "@/lib/agent/system-prompt";
 import {
   chatRequestSchema,
@@ -18,6 +17,7 @@ import {
   toolDefinitions,
 } from "@/lib/agent/tools";
 import { serverEnv } from "@/lib/env";
+import { checkRate, clientIp, turnsPerConversation } from "@/lib/rate-limit";
 import { findCharging, summarizeRoute } from "@/lib/route-ops";
 import type { RouteState } from "@/lib/types";
 
@@ -100,22 +100,19 @@ export async function POST(request: Request) {
   const state: RouteState = parsed.data.state;
 
   const env = serverEnv();
-  if (!env.ANTHROPIC_API_KEY) {
-    // Stand-in until demo mode answers here.
-    return createUIMessageStreamResponse({
-      stream: createUIMessageStream<DispatchUIMessage>({
-        execute: ({ writer }) => {
-          writer.write({ type: "text-start", id: "demo" });
-          writer.write({
-            type: "text-delta",
-            id: "demo",
-            delta: "There's no ANTHROPIC_API_KEY, so the assistant isn't connected.",
-          });
-          writer.write({ type: "text-end", id: "demo" });
-        },
-      }),
-    });
+  // No key: the scripted conversation, which costs nothing and isn't limited.
+  if (!env.ANTHROPIC_API_KEY) return demoResponse(messages, state);
+
+  // Every check that protects the credits comes before the model is called.
+  const turns = messages.filter((message) => message.role === "user").length;
+  if (turns > turnsPerConversation) {
+    return reply(
+      `This conversation has reached its ${turnsPerConversation} messages. Press Reset demo to start a new one.`,
+      429,
+    );
   }
+  const rate = await checkRate(clientIp(request), messages.at(-1)?.role === "user");
+  if (!rate.ok) return reply(rate.message, 429);
 
   const result = streamText({
     model: anthropic(env.ANTHROPIC_MODEL),

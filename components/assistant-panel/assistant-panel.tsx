@@ -27,9 +27,21 @@ import "./assistant-panel.scss";
  * panel: the replies, the tools each one used, the changes waiting for
  * approval, and the box to write in.
  */
-export function AssistantPanel({ starters }: { starters: readonly string[] }) {
+export function AssistantPanel({ demo, starters }: { demo: boolean; starters: readonly string[] }) {
   const agent = useAgent();
   const busy = agent.status === "submitted" || agent.status === "streaming";
+  const sent = agent.messages.filter((message) => message.role === "user").length;
+  const waiting = agent.messages
+    .at(-1)
+    ?.parts.some((part) => isStaticToolUIPart(part) && part.state === "input-available");
+  // In demo mode the script is offered a line at a time, once the turn
+  // before it is over.
+  const nextLine =
+    demo && sent > 0 && agent.status === "ready" && !waiting ? starters[sent] : undefined;
+  const send = (text: string) => {
+    agent.clearError();
+    void agent.sendMessage({ text });
+  };
 
   return (
     <div className="assistant-panel">
@@ -38,14 +50,13 @@ export function AssistantPanel({ starters }: { starters: readonly string[] }) {
           {agent.messages.length === 0 ? (
             <ConversationEmpty>
               <p className="assistant-panel__hello">
-                Ask about the round, or tell me what to change.
+                {demo
+                  ? "Demo mode: the answers are scripted, and every change still waits for you."
+                  : "Ask about the round, or tell me what to change."}
               </p>
               <PromptSuggestions>
-                {starters.map((starter) => (
-                  <PromptSuggestion
-                    key={starter}
-                    onClick={() => void agent.sendMessage({ text: starter })}
-                  >
+                {(demo ? starters.slice(0, 1) : starters).map((starter) => (
+                  <PromptSuggestion key={starter} onClick={() => send(starter)}>
                     {starter}
                   </PromptSuggestion>
                 ))}
@@ -93,14 +104,12 @@ export function AssistantPanel({ starters }: { starters: readonly string[] }) {
               <AlertDescription>{agent.error.message}</AlertDescription>
             </Alert>
           ) : null}
-          <PromptInput
-            busy={busy}
-            onStop={() => agent.stop()}
-            onSubmit={(text) => {
-              agent.clearError();
-              void agent.sendMessage({ text });
-            }}
-          >
+          {nextLine ? (
+            <PromptSuggestions>
+              <PromptSuggestion onClick={() => send(nextLine)}>{nextLine}</PromptSuggestion>
+            </PromptSuggestions>
+          ) : null}
+          <PromptInput busy={busy} onStop={() => agent.stop()} onSubmit={send}>
             <PromptInputTextarea
               aria-label="Message to the dispatch assistant"
               placeholder="Move the Utrecht stops earlier…"
