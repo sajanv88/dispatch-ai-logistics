@@ -1,5 +1,6 @@
 import type { z } from "zod";
 import type { ClientToolName, inputSchemas, ToolName } from "@/lib/agent/tools";
+import { addressLabel, resolveAddress } from "@/lib/route-ops";
 import type { RouteState } from "@/lib/types";
 
 /** Each tool's name, in words a dispatcher would use. */
@@ -18,7 +19,10 @@ type Input<T extends ClientToolName> = z.infer<(typeof inputSchemas)[T]>;
 const nameOf = (route: RouteState, id: string) =>
   route.stops.find((stop) => stop.id === id)?.name ?? `the stop ${id}`;
 
-/** The approval question: what will happen if the dispatcher says yes. */
+/**
+ * The approval question: what will happen if the dispatcher says yes, said
+ * from the round and the address book, not in the model's own words.
+ */
 export function approvalQuestion(name: ClientToolName, input: unknown, route: RouteState): string {
   switch (name) {
     case "reorder_stops": {
@@ -27,8 +31,13 @@ export function approvalQuestion(name: ClientToolName, input: unknown, route: Ro
     }
     case "add_stop": {
       const { address, kind, window } = input as Input<"add_stop">;
+      // The same lookup the change will make, so what's approved is what's added.
+      const found = resolveAddress(address);
+      if (!found.ok) {
+        return "That address isn't in the address book, so nothing can be added. Approve to tell the assistant, and it will offer known addresses.";
+      }
       const when = window ? `, between ${window.from} and ${window.to}` : "";
-      return `Add a ${kind} at ${address}${when}, at the end of the round?`;
+      return `Add a ${kind} at ${addressLabel(found.address)}${when}, at the end of the round?`;
     }
     case "remove_stop": {
       const { id } = input as Input<"remove_stop">;

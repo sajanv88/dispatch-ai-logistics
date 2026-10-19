@@ -84,7 +84,7 @@ export function findCharging(state: RouteState, nearStopId: string, freeOnly: bo
 const plain = (text: string) =>
   text
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
+    .replace(/\p{M}/gu, "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
@@ -93,19 +93,31 @@ export type AddressLookup =
   | { ok: true; address: KnownAddress }
   | { ok: false; error: string; suggestions: string[] };
 
-const label = (address: KnownAddress) => `${address.street}, ${address.city} (${address.name})`;
+export const addressLabel = (address: KnownAddress) =>
+  `${address.name}, ${address.street}, ${address.city}`;
+const label = addressLabel;
 
-/** Finds an address in the lookup table, by street and number or by business name. */
+const cities = new Set(knownAddresses.map((address) => plain(address.city)));
+
+/**
+ * Finds an address in the lookup table, by street and number or by business
+ * name, as whole words: "Damrak 10" isn't "Damrak 1". When the query names a
+ * city, the address has to be in it.
+ */
 export function resolveAddress(query: string): AddressLookup {
-  const q = plain(query);
+  const q = ` ${plain(query)} `;
+  const has = (phrase: string) => q.includes(` ${plain(phrase)} `);
+  const named = [...cities].filter((city) => q.includes(` ${city} `));
   const exact = knownAddresses.find(
-    (address) => q.includes(plain(address.street)) || q.includes(plain(address.name)),
+    (address) =>
+      (has(address.street) || has(address.name)) &&
+      (named.length === 0 || named.includes(plain(address.city))),
   );
   if (exact) return { ok: true, address: exact };
 
   // Not found: offer the known addresses nearest to what was asked, in the
   // same city if one was named, or on the same street.
-  const words = new Set(q.split(" "));
+  const words = new Set(q.trim().split(" "));
   const inCity = knownAddresses.filter((address) => words.has(plain(address.city)));
   const onStreet = knownAddresses.filter((address) =>
     plain(address.street)

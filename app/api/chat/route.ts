@@ -51,28 +51,43 @@ function toolsFor(state: RouteState) {
 }
 
 function friendlyError(error: unknown): string {
-  if (APICallError.isInstance(error)) {
-    if (error.statusCode === 401)
-      return "The Anthropic API key was refused. Check ANTHROPIC_API_KEY.";
-    if (error.statusCode === 429 || error.statusCode === 529) {
-      return "Anthropic is busy right now. Try again in a moment.";
-    }
-  }
-  console.error(error);
+  const status = APICallError.isInstance(error) ? error.statusCode : undefined;
+  // Only what says what went wrong: the error object also carries the
+  // conversation it was sent with.
+  console.error("chat failed", {
+    name: error instanceof Error ? error.name : typeof error,
+    status,
+    message: error instanceof Error ? error.message : String(error),
+  });
+  if (status === 401) return "The Anthropic API key was refused. Check ANTHROPIC_API_KEY.";
+  if (status === 429 || status === 529)
+    return "Anthropic is busy right now. Try again in a moment.";
   return "Something went wrong talking to the model. Try again.";
 }
 
-export async function POST(request: Request) {
-  if (Number(request.headers.get("content-length") ?? 0) > maxBodyBytes) {
-    return reply("That conversation is too long to send. Reset the demo to start again.", 413);
-  }
+const tooLong = () =>
+  reply("That conversation is too long to send. Reset the demo to start again.", 413);
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return reply("The request wasn't JSON.", 400);
+/** The body as JSON, refused past the size limit whatever Content-Length says. */
+async function readJson(
+  request: Request,
+): Promise<{ ok: true; body: unknown } | { ok: false; response: Response }> {
+  if (Number(request.headers.get("content-length") ?? 0) > maxBodyBytes) {
+    return { ok: false, response: tooLong() };
   }
+  const bytes = await request.arrayBuffer();
+  if (bytes.byteLength > maxBodyBytes) return { ok: false, response: tooLong() };
+  try {
+    return { ok: true, body: JSON.parse(new TextDecoder().decode(bytes)) };
+  } catch {
+    return { ok: false, response: reply("The request wasn't JSON.", 400) };
+  }
+}
+
+export async function POST(request: Request) {
+  const read = await readJson(request);
+  if (!read.ok) return read.response;
+  const { body } = read;
   const parsed = chatRequestSchema.safeParse(body);
   if (!parsed.success) return reply("The request didn't have a valid round and messages.", 400);
 
