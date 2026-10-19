@@ -26,21 +26,19 @@ function memoryLimiter(max: number): Limiter {
   return {
     async limit(key) {
       const now = Date.now();
+      // At the cap, first forget callers whose hour has passed. Live counters
+      // are never dropped: a flood of new addresses mustn't reset anyone's
+      // limit, so past the cap a new address is refused until room frees up.
+      if (!hits.has(key) && hits.size >= maxKeys) {
+        for (const [other, times] of hits) {
+          if (times.every((at) => now - at >= windowMs)) hits.delete(other);
+        }
+        if (hits.size >= maxKeys) return { success: false, reset: now + windowMs };
+      }
       const recent = (hits.get(key) ?? []).filter((at) => now - at < windowMs);
       const success = recent.length < max;
       if (success) recent.push(now);
       hits.set(key, recent);
-      // Forget keys that have gone quiet, and past a hard cap the oldest
-      // ones, so the map can't grow without bound.
-      if (hits.size > maxKeys) {
-        for (const [other, times] of hits) {
-          if (times.every((at) => now - at >= windowMs)) hits.delete(other);
-        }
-        for (const other of hits.keys()) {
-          if (hits.size <= maxKeys) break;
-          hits.delete(other);
-        }
-      }
       return { success, reset: (recent[0] ?? now) + windowMs };
     },
   };
@@ -68,14 +66,18 @@ function getLimiters() {
 }
 
 /**
- * The caller's address. Vercel's proxy sets the first two itself, so a client
- * can't choose them; x-forwarded-for is the fallback for other hosts. Callers
- * with no address share one limit.
+ * The caller's address. On Vercel, its proxy sets x-vercel-forwarded-for and
+ * x-real-ip itself, so a client can't choose them. Elsewhere those headers are
+ * whatever the client sent, so only x-forwarded-for from your own proxy is
+ * read. Callers with no address share one limit.
  */
 export function clientIp(request: Request): string {
   const first = (name: string) => request.headers.get(name)?.split(",")[0]?.trim();
+  const onVercel = Boolean(process.env.VERCEL);
   return (
-    first("x-vercel-forwarded-for") || first("x-real-ip") || first("x-forwarded-for") || "unknown"
+    (onVercel ? first("x-vercel-forwarded-for") || first("x-real-ip") : undefined) ||
+    first("x-forwarded-for") ||
+    "unknown"
   );
 }
 
