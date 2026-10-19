@@ -93,3 +93,7 @@ Without Upstash, each server instance keeps its own limits in memory, and they r
 **The demo script.** The lines are in [`lib/agent/demo-script.ts`](lib/agent/demo-script.ts) and the replies in [`lib/agent/demo.ts`](lib/agent/demo.ts). The replies are worked out from the round, so they still make sense after you change the seed. The fourth turn drops a stop named "Bloemenhuis Buiten", or the last stop if there isn't one.
 
 **The look.** The screen is built from [nuvui blocks](https://nuvui.nuvraxis.com/blocks), themed with CSS variables. Dark mode follows the system.
+
+## License
+
+[MIT](LICENSE)

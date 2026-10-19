@@ -4,6 +4,7 @@
   "private": true,
   "description": "An AI logistics console: a dispatcher talks to a Claude agent that re-plans a delivery van's round on a live map.",
   "license": "MIT",
+  "author": "Sajanv88",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
