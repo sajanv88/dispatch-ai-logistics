@@ -1,4 +1,7 @@
-// The page frame. Everything else is styled by the block that renders it.
+// The theme, then the page frame. Everything else is styled by the block
+// that renders it.
+@use "./base/theme";
+
 html,
 body {
   block-size: 100%;

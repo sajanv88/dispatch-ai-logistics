@@ -1,0 +1,60 @@
+@use "@nuvui/react/scss/mixins" as nuv;
+
+// Dispatch's theme: nuvui's own tokens, set to square corners, taller
+// controls and an amber primary. Unlayered, so it wins over nuvui's defaults,
+// which sit in the "tokens" cascade layer. This is the one file where colors
+// are written as values; everywhere else uses the tokens.
+
+:root {
+  --radius-xs: 0rem;
+  --radius-sm: 0rem;
+  --radius-md: 0rem;
+  --radius-lg: 0rem;
+  --radius-xl: 0rem;
+  --nuv-control-height-sm: 2.25rem;
+  --nuv-control-height-md: 2.75rem;
+  --nuv-control-height-lg: 3.25rem;
+}
+
+:root,
+[data-theme="light"],
+[data-theme="system"] {
+  // stylelint-disable-next-line color-no-hex -- a token's value, defined here
+  --color-background: #fff;
+  --color-foreground: oklch(14.7% 0.004 49.3deg);
+  // stylelint-disable-next-line color-no-hex -- a token's value, defined here
+  --color-surface: #fff;
+  --color-surface-foreground: oklch(14.7% 0.004 49.3deg);
+  --color-muted: oklch(96% 0.002 17.2deg);
+  --color-muted-foreground: oklch(43.8% 0.017 39.3deg);
+  --color-primary: oklch(67.5% 0.173 65.555deg);
+  --color-primary-foreground: oklch(14.7% 0.004 49.3deg);
+  --color-danger: oklch(57.7% 0.245 27.325deg);
+  // stylelint-disable-next-line color-no-hex -- a token's value, defined here
+  --color-danger-foreground: #fff;
+  --color-success: oklch(52.7% 0.154 150.069deg);
+  --color-warning: oklch(55.5% 0.163 48.998deg);
+  --color-border: oklch(92.2% 0.005 34.3deg);
+  --color-border-strong: oklch(54.7% 0.021 43.1deg);
+  --color-ring: oklch(63.5% 0.173 65.555deg);
+}
+
+// For [data-theme="dark"], and for [data-theme="system"] when the device
+// asks for dark.
+@include nuv.dark {
+  --color-background: oklch(14.7% 0.004 49.3deg);
+  --color-foreground: oklch(98.6% 0.002 67.8deg);
+  --color-surface: oklch(21.4% 0.009 43.1deg);
+  --color-surface-foreground: oklch(98.6% 0.002 67.8deg);
+  --color-muted: oklch(26.8% 0.011 36.5deg);
+  --color-muted-foreground: oklch(71.4% 0.014 41.2deg);
+  --color-primary: oklch(77.5% 0.173 65.555deg);
+  --color-primary-foreground: oklch(14.7% 0.004 49.3deg);
+  --color-danger: oklch(70.4% 0.191 22.216deg);
+  --color-danger-foreground: oklch(14.7% 0.004 49.3deg);
+  --color-success: oklch(79.2% 0.209 151.711deg);
+  --color-warning: oklch(82.8% 0.189 84.429deg);
+  --color-border: oklch(26.8% 0.011 36.5deg);
+  --color-border-strong: oklch(54.7% 0.021 43.1deg);
+  --color-ring: oklch(77.5% 0.173 65.555deg);
+}
