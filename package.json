@@ -1,0 +1,44 @@
+{
+  "name": "dispatch",
+  "version": "0.1.0",
+  "private": true,
+  "description": "An AI logistics console: a dispatcher talks to a Claude agent that re-plans a delivery van's round on a live map.",
+  "license": "MIT",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "biome check . && stylelint \"**/*.scss\" --allow-empty-input",
+    "lint:fix": "biome check --write . && stylelint \"**/*.scss\" --allow-empty-input --fix",
+    "typecheck": "next typegen && tsc --noEmit"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "4.0.82",
+    "@ai-sdk/react": "4.0.147",
+    "@nuvui/barcodes": "0.1.3",
+    "@nuvui/chat": "0.1.3",
+    "@nuvui/icons": "0.1.0",
+    "@nuvui/map": "0.1.2",
+    "@nuvui/react": "0.7.0",
+    "@upstash/ratelimit": "2.2.0",
+    "@upstash/redis": "1.39.0",
+    "ai": "7.0.143",
+    "maplibre-gl": "6.15.0",
+    "next": "16.4.2",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "server-only": "0.0.1",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.15",
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "postcss": "8.5.30",
+    "sass": "^1.105.2",
+    "stylelint": "17.16.0",
+    "stylelint-config-standard-scss": "17.0.0",
+    "typescript": "^7.0.2"
+  }
+}
