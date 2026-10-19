@@ -13,7 +13,9 @@ import { serverEnv } from "@/lib/env";
 export const messagesPerHour = 20;
 export const requestsPerHour = 80;
 export const turnsPerConversation = 12;
+export const routingPerHour = 120;
 const windowMs = 60 * 60 * 1000;
+const maxKeys = 10_000;
 
 interface Limiter {
   limit(key: string): Promise<{ success: boolean; reset: number }>;
@@ -28,10 +30,15 @@ function memoryLimiter(max: number): Limiter {
       const success = recent.length < max;
       if (success) recent.push(now);
       hits.set(key, recent);
-      // Forget keys that have gone quiet, so the map doesn't grow forever.
-      if (hits.size > 10_000) {
+      // Forget keys that have gone quiet, and past a hard cap the oldest
+      // ones, so the map can't grow without bound.
+      if (hits.size > maxKeys) {
         for (const [other, times] of hits) {
           if (times.every((at) => now - at >= windowMs)) hits.delete(other);
+        }
+        for (const other of hits.keys()) {
+          if (hits.size <= maxKeys) break;
+          hits.delete(other);
         }
       }
       return { success, reset: (recent[0] ?? now) + windowMs };
@@ -49,20 +56,27 @@ function makeLimiter(max: number, prefix: string): Limiter {
   });
 }
 
-let limiters: { messages: Limiter; requests: Limiter } | undefined;
+let limiters: { messages: Limiter; requests: Limiter; routing: Limiter } | undefined;
 
 function getLimiters() {
   limiters ??= {
     messages: makeLimiter(messagesPerHour, "dispatch:messages"),
     requests: makeLimiter(requestsPerHour, "dispatch:requests"),
+    routing: makeLimiter(routingPerHour, "dispatch:routing"),
   };
   return limiters;
 }
 
-/** The caller's address, as Vercel and most proxies pass it on. */
+/**
+ * The caller's address. Vercel's proxy sets the first two itself, so a client
+ * can't choose them; x-forwarded-for is the fallback for other hosts. Callers
+ * with no address share one limit.
+ */
 export function clientIp(request: Request): string {
-  const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-  return forwarded || request.headers.get("x-real-ip") || "unknown";
+  const first = (name: string) => request.headers.get(name)?.split(",")[0]?.trim();
+  return (
+    first("x-vercel-forwarded-for") || first("x-real-ip") || first("x-forwarded-for") || "unknown"
+  );
 }
 
 const minutesUntil = (reset: number) => Math.max(1, Math.ceil((reset - Date.now()) / 60_000));
@@ -94,4 +108,9 @@ export async function checkRate(
     };
   }
   return { ok: true };
+}
+
+/** Counts a request to the routing proxy, which fetches on the caller's behalf. */
+export async function checkRouting(ip: string): Promise<boolean> {
+  return (await getLimiters().routing.limit(ip)).success;
 }

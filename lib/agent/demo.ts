@@ -44,6 +44,16 @@ function doneInThisTurn(messages: DispatchUIMessage[]): Done[] {
   });
 }
 
+/**
+ * A short string from a tool's output. The outputs come back from the
+ * browser, so nothing in them is trusted: anything else reads as "".
+ */
+function field(output: unknown, key: string): string {
+  if (typeof output !== "object" || output === null) return "";
+  const value = (output as Record<string, unknown>)[key];
+  return typeof value === "string" && value.length <= 120 ? value : "";
+}
+
 const stopName = (state: RouteState, id: string) =>
   state.stops.find((stop) => stop.id === id)?.name ?? "that stop";
 
@@ -54,7 +64,8 @@ const afterDenial: Step = {
 };
 
 function afterError(done: Done): Step {
-  return { kind: "text", text: `That didn't work: ${String(done.output)}` };
+  const reason = typeof done.output === "string" ? done.output.slice(0, 300) : "";
+  return { kind: "text", text: reason ? `That didn't work: ${reason}` : "That didn't work." };
 }
 
 // --- The four turns -------------------------------------------------------------
@@ -100,7 +111,10 @@ function addPickup(state: RouteState, done: Done[]): Step[] {
   }
   if (added.denied) return [afterDenial];
   if (!added.ok) return [afterError(added)];
-  const { id } = added.output as { id: string };
+  const id = field(added.output, "id");
+  if (!state.stops.some((stop) => stop.id === id)) {
+    return [{ kind: "text", text: "The pickup was added, but I couldn't find it on the round." }];
+  }
 
   if (!reordered) {
     // Before the first Utrecht stop that isn't the new one.
@@ -185,9 +199,9 @@ function wrapUpStops(state: RouteState, done: Done[]): Step[] {
     if (!next) return [{ kind: "text", text: "Done. There's no stop left to relabel." }];
     return [{ kind: "client", tool: "regenerate_label", input: { stop_id: next.id } }];
   }
-  const { delivered: what } = delivered.output as { delivered: string };
-  const { removed: gone } = removed.output as { removed: string };
-  const { tracking } = relabelled.output as { tracking: string };
+  const what = field(delivered.output, "delivered") || "the stop";
+  const gone = field(removed.output, "removed") || "the cancelled stop";
+  const tracking = field(relabelled.output, "tracking") || "a new tracking number";
   return [
     {
       kind: "text",

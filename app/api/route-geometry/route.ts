@@ -1,5 +1,7 @@
 import { z } from "zod";
 import { serverEnv } from "@/lib/env";
+import { readJson } from "@/lib/http";
+import { checkRouting, clientIp } from "@/lib/rate-limit";
 
 // Optional: the way along the roads between stops, from an OSRM server at
 // ROUTING_URL. Without it, or when it fails, the map draws straight lines.
@@ -26,12 +28,12 @@ export async function POST(request: Request) {
   const base = serverEnv().ROUTING_URL;
   if (!base) return new Response("Routing isn't configured.", { status: 404 });
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return new Response("The request wasn't JSON.", { status: 400 });
+  if (!(await checkRouting(clientIp(request)))) {
+    return new Response("Too many routing requests. Try again later.", { status: 429 });
   }
+  const read = await readJson(request, 8 * 1024);
+  if (!read.ok) return read.response;
+  const body = read.body;
   const parsed = requestSchema.safeParse(body);
   if (!parsed.success) return new Response("Expected 2 to 50 places.", { status: 400 });
 

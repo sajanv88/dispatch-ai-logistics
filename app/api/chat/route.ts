@@ -17,6 +17,7 @@ import {
   toolDefinitions,
 } from "@/lib/agent/tools";
 import { serverEnv } from "@/lib/env";
+import { readJson, text } from "@/lib/http";
 import { checkRate, clientIp, turnsPerConversation } from "@/lib/rate-limit";
 import { findCharging, summarizeRoute } from "@/lib/route-ops";
 import type { RouteState } from "@/lib/types";
@@ -24,9 +25,6 @@ import type { RouteState } from "@/lib/types";
 export const maxDuration = 30;
 
 const maxBodyBytes = 256 * 1024;
-
-const reply = (message: string, status: number) =>
-  new Response(message, { status, headers: { "content-type": "text/plain; charset=utf-8" } });
 
 // The read-only tools run here, against the round the browser sent. The
 // others have no `execute`, so the model's call goes to the browser.
@@ -65,37 +63,22 @@ function friendlyError(error: unknown): string {
   return "Something went wrong talking to the model. Try again.";
 }
 
-const tooLong = () =>
-  reply("That conversation is too long to send. Reset the demo to start again.", 413);
-
-/** The body as JSON, refused past the size limit whatever Content-Length says. */
-async function readJson(
-  request: Request,
-): Promise<{ ok: true; body: unknown } | { ok: false; response: Response }> {
-  if (Number(request.headers.get("content-length") ?? 0) > maxBodyBytes) {
-    return { ok: false, response: tooLong() };
-  }
-  const bytes = await request.arrayBuffer();
-  if (bytes.byteLength > maxBodyBytes) return { ok: false, response: tooLong() };
-  try {
-    return { ok: true, body: JSON.parse(new TextDecoder().decode(bytes)) };
-  } catch {
-    return { ok: false, response: reply("The request wasn't JSON.", 400) };
-  }
-}
-
 export async function POST(request: Request) {
-  const read = await readJson(request);
+  const read = await readJson(
+    request,
+    maxBodyBytes,
+    "That conversation is too long to send. Reset the demo to start again.",
+  );
   if (!read.ok) return read.response;
   const { body } = read;
   const parsed = chatRequestSchema.safeParse(body);
-  if (!parsed.success) return reply("The request didn't have a valid round and messages.", 400);
+  if (!parsed.success) return text("The request didn't have a valid round and messages.", 400);
 
   const validated = await safeValidateUIMessages<DispatchUIMessage>({
     messages: parsed.data.messages,
     tools: toolDefinitions,
   });
-  if (!validated.success) return reply("The messages weren't valid.", 400);
+  if (!validated.success) return text("The messages weren't valid.", 400);
   const messages = validated.data;
   const state: RouteState = parsed.data.state;
 
@@ -106,13 +89,13 @@ export async function POST(request: Request) {
   // Every check that protects the credits comes before the model is called.
   const turns = messages.filter((message) => message.role === "user").length;
   if (turns > turnsPerConversation) {
-    return reply(
+    return text(
       `This conversation has reached its ${turnsPerConversation} messages. Press Reset demo to start a new one.`,
       429,
     );
   }
   const rate = await checkRate(clientIp(request), messages.at(-1)?.role === "user");
-  if (!rate.ok) return reply(rate.message, 429);
+  if (!rate.ok) return text(rate.message, 429);
 
   const result = streamText({
     model: anthropic(env.ANTHROPIC_MODEL),
