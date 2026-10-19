@@ -10,6 +10,7 @@ export default function Page() {
     <Dispatch
       mapStyle={mapStyleFor(env.MAP_TILE_URL, env.MAP_ATTRIBUTION)}
       demo={!env.ANTHROPIC_API_KEY}
+      routing={Boolean(env.ROUTING_URL)}
     />
   );
 }

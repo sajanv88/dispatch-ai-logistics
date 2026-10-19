@@ -12,6 +12,8 @@ import { DispatchProvider, useDispatchStore } from "@/lib/store";
 interface DispatchProps {
   mapStyle: MapStyle;
   demo: boolean;
+  /** Whether the server can draw the way along the roads. */
+  routing: boolean;
 }
 
 /** The console: everything under it shares one store and one conversation. */
@@ -25,7 +27,7 @@ export function Dispatch(props: DispatchProps) {
   );
 }
 
-function Console({ mapStyle, demo }: DispatchProps) {
+function Console({ mapStyle, demo, routing }: DispatchProps) {
   const store = useDispatchStore();
   const agent = useAgent();
   return (
@@ -37,7 +39,7 @@ function Console({ mapStyle, demo }: DispatchProps) {
       }}
       assistant={<AssistantPanel demo={demo} starters={demo ? demoScript : liveStarters} />}
     >
-      <DeliveryRoute mapStyle={mapStyle} />
+      <DeliveryRoute mapStyle={mapStyle} routing={routing} />
       <StopDrawer mapStyle={mapStyle} />
     </DispatchShell>
   );

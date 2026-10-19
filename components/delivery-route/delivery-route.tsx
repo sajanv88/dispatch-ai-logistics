@@ -16,6 +16,7 @@ import "@/components/map-worker";
 import { etas, nextStop, routeLines, vanPosition } from "@/lib/geo";
 import { useDispatch, useDispatchStore } from "@/lib/store";
 import type { Stop, StopStatus } from "@/lib/types";
+import { useRoadLines } from "./use-road-lines";
 import "./delivery-route.scss";
 
 const words: Record<StopStatus, string> = {
@@ -37,14 +38,15 @@ function useStableBounds(bounds: MapBounds | undefined): MapBounds | undefined {
   return useMemo(() => bounds, [key]);
 }
 
-export function DeliveryRoute({ mapStyle }: { mapStyle: MapStyle }) {
+export function DeliveryRoute({ mapStyle, routing }: { mapStyle: MapStyle; routing: boolean }) {
   const store = useDispatchStore();
   const route = useDispatch((state) => state.route);
   const chosen = useDispatch((state) => state.selectedId);
   const headingId = useId();
 
   const times = useMemo(() => etas(route), [route]);
-  const lines = useMemo(() => routeLines(route), [route]);
+  const straight = useMemo(() => routeLines(route), [route]);
+  const lines = useRoadLines(straight, routing);
   const van = useMemo(() => vanPosition(route), [route]);
   const bounds = useStableBounds(
     mapBoundsOf([route.van.depot.at, ...route.stops.map((stop) => stop.at)]),
