@@ -4,8 +4,7 @@ An AI logistics console. A dispatcher talks to a Claude agent that re-plans a de
 
 Built with Next.js, the [Vercel AI SDK](https://ai-sdk.dev) and [nuvui](https://nuvui.nuvraxis.com). It uses no paid APIs, and it deploys without an Anthropic key: with none set, the chat runs a scripted demo that exercises every tool.
 
-<!-- Replace the repository URL with this template's public GitHub address. -->
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FYOUR-ORG%2Fdispatch&project-name=dispatch&repository-name=dispatch)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fsajanv88%2Fdispatch-ai-logistics&project-name=dispatch-ai-logistics&repository-name=dispatch-ai-logistics)
 
 ## Run it locally
 
